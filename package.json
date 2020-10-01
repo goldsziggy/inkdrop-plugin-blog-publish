@@ -5,7 +5,7 @@
   "description": "A short description of your package",
   "keywords": [],
   "author": "Matthew Zygowicz",
-  "repository": "https://github.com/inkdropapp/blog-publish",
+  "repository": "https://github.com/goldsziggy/inkdrop-plugin-blog-publish",
   "license": "MIT",
   "engines": {
     "inkdrop": "^5.x"
