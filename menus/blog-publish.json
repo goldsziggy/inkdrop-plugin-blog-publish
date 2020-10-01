@@ -1,0 +1,30 @@
+{
+  "menu": [
+    {
+      "label": "File",
+      "submenu": [
+        {
+          "label": "Publish",
+          "submenu": [
+            {
+              "label": "to Ghost",
+              "command": "blog-publish:publish-ghost-single"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context-menu": {
+    ".note-list-item-view": [
+      {
+        "label": "Publish to Ghost",
+        "command": "blog-publish:publish-ghost-single"
+      },
+      {
+        "label": "Sync from Ghost",
+        "command": "blog-publish:sync-ghost-single"
+      }
+    ]
+  }
+}
