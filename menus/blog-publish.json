@@ -1,29 +1,30 @@
 {
-  "menu": [
-    {
-      "label": "File",
-      "submenu": [
-        {
-          "label": "Publish",
-          "submenu": [
-            {
-              "label": "to Ghost",
-              "command": "blog-publish:publish-ghost-single"
-            }
-          ]
-        }
-      ]
-    }
-  ],
   "context-menu": {
     ".note-list-item-view": [
       {
-        "label": "Publish to Ghost",
-        "command": "blog-publish:publish-ghost-single"
-      },
-      {
-        "label": "Sync from Ghost",
-        "command": "blog-publish:sync-ghost-single"
+        "label": "Blog Publisher",
+        "submenu": [
+          {
+            "label": "Ghost",
+            "submenu": [
+              { "label": "Publish to Ghost", "command": "blog-publish:publish-ghost-single" },
+              {
+                "label": "Sync from Ghost",
+                "command": "blog-publish:sync-ghost-single"
+              }
+            ]
+          },
+          {
+            "label": "Wordpress",
+            "submenu": [
+              { "label": "Publish to Wordpress", "command": "blog-publish:publish-wp-single" },
+              {
+                "label": "Sync from Wordpress",
+                "command": "blog-publish:sync-wp-single"
+              }
+            ]
+          }
+        ]
       }
     ]
   }

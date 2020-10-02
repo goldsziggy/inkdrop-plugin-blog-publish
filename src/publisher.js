@@ -3,12 +3,25 @@
 'use babel'
 import GhostAdminAPI from '@tryghost/admin-api'
 import GhostContentAPI from '@tryghost/content-api'
+import WPAPI from 'wpapi'
 const showdown = require('showdown')
 
+function getWPAPIObj() {
+  const endpoint = inkdrop.config.get('blog-publish.wordpressUrl')
+  const username = inkdrop.config.get('blog-publish.wordpressUsername')
+  const password = inkdrop.config.get('blog-publish.wordpressPassword')
+
+  return new WPAPI({
+    endpoint,
+    username,
+    password,
+  })
+}
+
 function getGhostAPIObj() {
-  const contentToken = inkdrop.config.get('ghost-publish.ghostContentToken')
-  const adminToken = inkdrop.config.get('ghost-publish.ghostAdminToken')
-  const url = inkdrop.config.get('ghost-publish.ghostUrl')
+  const contentToken = inkdrop.config.get('blog-publish.ghostContentToken')
+  const adminToken = inkdrop.config.get('blog-publish.ghostAdminToken')
+  const url = inkdrop.config.get('blog-publish.ghostUrl')
 
   // leaving the content API in here in case there is a need in the future
   return {
@@ -25,7 +38,66 @@ function getGhostAPIObj() {
   }
 }
 
-export async function publishToGhost() {
+function getPosts(blogType) {
+  if (blogType === 'WP') {
+    const api = getWPAPIObj()
+    return api.posts()
+  } else if (blogType === 'GHOST') {
+    const { admin: adminApi } = getGhostAPIObj()
+    return adminApi.posts.browse({ limit: 'all', formats: ['html'] })
+  }
+  throw new Error('Unsupported blog-type in getPosts')
+}
+
+function findPostWithTitle({ blogType, posts, title }) {
+  if (blogType === 'WP') {
+    return posts.find((post) => post.title.rendered === title)
+  } else if (blogType === 'GHOST') {
+    return posts.find((post) => post.title === title)
+  }
+
+  throw new Error('Unsupported blog-type in findPostWithTitle')
+}
+
+function getPostHTML({ blogType, post }) {
+  if (blogType === 'WP') {
+    return post.content.rendered
+  } else if (blogType === 'GHOST') {
+    console.log({ post })
+    return post.html
+  }
+
+  throw new Error('Unsupported blog-type in getPostHTML')
+}
+
+function createNewPost({ blogType, title, html }) {
+  if (blogType === 'WP') {
+    const api = getWPAPIObj()
+    return api.posts().create({ title, content: html })
+  } else if (blogType === 'GHOST') {
+    const { admin: adminApi } = getGhostAPIObj()
+    return adminApi.posts.add({ title, html }, { source: 'html' })
+  }
+
+  throw new Error('Unsupported blog-type in getPostHTML')
+}
+
+function editPost({ blogType, foundPost, html, title }) {
+  if (blogType === 'WP') {
+    const api = getWPAPIObj()
+    return api.posts().id(foundPost.id).update({ content: html })
+  } else if (blogType === 'GHOST') {
+    const { admin: adminApi } = getGhostAPIObj()
+    return adminApi.posts.edit(
+      { id: foundPost.id, title, html, updated_at: foundPost.updated_at },
+      { source: 'html' }
+    )
+  }
+
+  throw new Error('Unsupported blog-type in getPostHTML')
+}
+
+export async function publish(blogType) {
   const { noteListBar, notes } = inkdrop.store.getState()
   const noteIds = noteListBar.actionTargetNoteIds
 
@@ -55,23 +127,18 @@ export async function publishToGhost() {
       files[note.title] = { content: note.body }
     }
 
-    const { admin: adminApi, client: clientApi } = getGhostAPIObj()
-
-    const posts = await adminApi.posts.browse()
+    const posts = await getPosts(blogType)
     const converter = new showdown.Converter()
 
     for (const [key, value] of Object.entries(files)) {
       const html = converter.makeHtml(value.content)
 
-      const found = posts.find((post) => post.title === key)
+      const found = findPostWithTitle({ blogType, posts, title: key })
 
       if (found) {
-        await adminApi.posts.edit(
-          { id: found.id, title: key, html, updated_at: found.updated_at },
-          { source: 'html' }
-        )
+        await editPost({ blogType, foundPost: found, html, title: key })
       } else {
-        await adminApi.posts.add({ title: key, html }, { source: 'html' })
+        await createNewPost({ blogType, title: key, html })
       }
     }
   } catch (e) {
@@ -82,7 +149,7 @@ export async function publishToGhost() {
   return true
 }
 
-export async function syncWithGhost() {
+export async function sync(blogType) {
   const { noteListBar, notes } = inkdrop.store.getState()
   const noteIds = noteListBar.actionTargetNoteIds
 
@@ -101,7 +168,6 @@ export async function syncWithGhost() {
     const { noteListBar, notes } = inkdrop.store.getState()
     const { cm } = inkdrop.getActiveEditor()
 
-    console.log({ cm })
     const noteIds = noteListBar.actionTargetNoteIds
 
     if (noteIds.length === 0 || Object.keys(notes.hashedItems).length === 0) {
@@ -115,16 +181,14 @@ export async function syncWithGhost() {
       files[note.title] = { content: note.body }
     }
 
-    const { admin: adminApi } = getGhostAPIObj()
+    const posts = await getPosts(blogType)
 
-    const posts = await adminApi.posts.browse({ formats: ['html'] })
     const converter = new showdown.Converter()
 
     for (const [key, value] of Object.entries(files)) {
-      const found = posts.find((post) => post.title === key)
-      console.log({ key })
+      const found = findPostWithTitle({ blogType, posts, title: key })
       if (found) {
-        const md = converter.makeMarkdown(found.html)
+        const md = converter.makeMarkdown(getPostHTML({ blogType, post: found }))
 
         cm.doc.setValue(md)
       }

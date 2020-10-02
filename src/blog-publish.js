@@ -1,8 +1,18 @@
 'use babel'
 
-import { publishToGhost, syncWithGhost } from './publisher'
+import { publish, sync } from './publisher'
 
 let commandListener = null
+
+function getFriendlyNameForBlogtype(blogType) {
+  if (blogType === 'GHOST') {
+    return 'Ghost'
+  } else if (blogType === 'WP') {
+    return 'Wordpress'
+  }
+
+  return ''
+}
 
 function notify(level, message, details) {
   const options = {
@@ -16,14 +26,14 @@ function notify(level, message, details) {
   inkdrop.notifications[`add${level}`](message, options)
 }
 
-async function doPublishGhost(isPublic) {
+async function doPublish(blogType) {
   try {
-    await publishToGhost(isPublic)
-
+    await publish(blogType)
+    const friendlyName = getFriendlyNameForBlogtype(blogType)
     notify(
       'Success',
-      'Successfully exported to Ghost Blog',
-      `The selected note has been published to your Ghost Blog.`
+      `Successfully exported to ${friendlyName} Blog`,
+      `The selected note has been published to your ${friendlyName} Blog.`
     )
   } catch (err) {
     console.error(err)
@@ -31,14 +41,14 @@ async function doPublishGhost(isPublic) {
   }
 }
 
-async function doSyncGhost(isPublic) {
+async function doSync(blogType) {
   try {
-    await syncWithGhost(isPublic)
-
+    await sync(blogType)
+    const friendlyName = getFriendlyNameForBlogtype(blogType)
     notify(
       'Success',
-      'Successfully synched with Ghost Blog',
-      `The selected note has been updated with the latest from your Ghost Blog.`
+      `Successfully synched with ${friendlyName} Blog`,
+      `The selected note has been updated with the latest from your ${friendlyName} Blog.`
     )
   } catch (err) {
     console.error(err)
@@ -65,12 +75,32 @@ export const config = {
     type: 'string',
     default: '',
   },
+  wordpressUrl: {
+    title: 'Wordpress URL',
+    description: 'The url used to communicate with Wordpress',
+    type: 'string',
+    default: '',
+  },
+  wordpressUsername: {
+    title: 'Wordpress Username',
+    description: 'The username to be used to publish articles',
+    type: 'string',
+    default: '',
+  },
+  wordpressPassword: {
+    title: 'Wordpress Password',
+    description: 'The password for the matching username',
+    type: 'string',
+    default: '',
+  },
 }
 
 export function activate() {
   commandListener = inkdrop.commands.add(document.body, {
-    'blog-publish:publish-ghost-single': () => doPublishGhost(),
-    'blog-publish:sync-ghost-single': () => doSyncGhost(),
+    'blog-publish:publish-ghost-single': () => doPublish('GHOST'),
+    'blog-publish:sync-ghost-single': () => doSync('GHOST'),
+    'blog-publish:publish-wp-single': () => doPublish('WP'),
+    'blog-publish:sync-wp-single': () => doSync('WP'),
   })
 }
 

@@ -11,7 +11,8 @@
     "inkdrop": "^5.x"
   },
   "scripts": {
-    "build": "babel src/ -d lib/"
+    "build": "babel src/ -d lib/",
+    "dev": "babel src/ -s -d lib/ --watch"
   },
   "babel": {
     "presets": [
@@ -31,7 +32,8 @@
     "@tryghost/content-api": "^1.4.5",
     "filenamify": "^4.2.0",
     "markdown-yaml-metadata-parser": "^2.1.1",
-    "showdown": "^1.9.1"
+    "showdown": "^1.9.1",
+    "wpapi": "^1.2.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.11.6",

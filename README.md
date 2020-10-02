@@ -5,7 +5,7 @@ Blog publish plugin for Inkdrop is meant to allow blogging inside the Inkdrop ed
 ### Supported Blogs
 
 - [x] Ghost Blog
-- [ ] Wordpress
+- [x] Wordpress
 - [ ] ????
 
 ## Installation
@@ -21,16 +21,29 @@ Because this plugin is designed to talk to 3rd party blogging software, we have 
 In your `init.js` file for Inkdrop, add the follow lines with your appropriate keys:
 
 ```
+// Ghost configuration
 inkdrop.config.set(
-  'ghost-publish.ghostAdminToken','apiTokenValue'
+  'blog-publish.ghostAdminToken','apiTokenValue'
 )
-inkdrop.config.set('ghost-publish.ghostContentToken', 'fillerValue') // not used and optional
-inkdrop.config.set('ghost-publish.ghostUrl', 'www.example.com')
+inkdrop.config.set('blog-publish.ghostContentToken', 'fillerValue') // not used and optional
+inkdrop.config.set('blog-publish.ghostUrl', 'www.example.com')
+
+// Wordpress configuration
+inkdrop.config.set('blog-publish.wordpressUrl', 'www.example.com')
+inkdrop.config.set('blog-publish.wordpressUsername', 'yourUsernameHere')
+inkdrop.config.set('blog-publish.wordpressPassword', 'yourPasswordHere')
+
 ```
 
 ### Generating apikey for Ghost Blog
 
 API Keys for Ghost blog are hidden under the integrations tab. From the Ghost Application, navigate to `Settings -> Integrations -> Add custom integration`. After you create your custom integration for Inkdrop, you will be presented with your admin api key.
+
+### Wordpress setup
+
+Behind the scenes we are using Basic Auth for wordpress via the npm module wpapi. I found when testing this locally myself I needed to enable a specific plugin for the Basic Auth headers to work and passthrough to Wordpress.
+
+Also - buyer-beware Basic Auth, like the name implies, is basic and not known to be the most secure of resources.
 
 ## Usage
 
@@ -43,7 +56,7 @@ As this plugin is in its early stages, this feature makes the assumption that th
 1. Create a new note
 2. Give the new note the same title as the note from the blog
 3. Right click the note
-4. Click `Sync with Ghost`
+4. Click `Blog Publisher` -> `:BlogType:` -> `Sync with :BlogType:`
 
 ![Sync With Ghost Feature Demo](https://raw.githubusercontent.com/goldsziggy/gifs/master/inkdrop/SyncWithGhost.gif)
 
