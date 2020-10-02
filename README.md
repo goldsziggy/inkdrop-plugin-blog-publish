@@ -45,10 +45,10 @@ As this plugin is in its early stages, this feature makes the assumption that th
 3. Right click the note
 4. Click `Sync with Ghost`
 
-![Sync With Ghost Feature Demo](gifs/SyncWithGhost.gif)
+![Sync With Ghost Feature Demo](https://raw.githubusercontent.com/goldsziggy/gifs/master/inkdrop/SyncWithGhost.gif)
 
 ### Publish feature
 
 As with the Sync feature, when publishing the plugin will look for blog-posts with the same title as your Note. If any matches are found, this plugin will attempt to update the blog-post instead of creating a new one.
 
-![Publish With Ghost Feature Demo](gifs/PublishWithGhost.gif)
+![Publish With Ghost Feature Demo](https://raw.githubusercontent.com/goldsziggy/gifs/master/inkdrop/PublishWithGhost.gif)
