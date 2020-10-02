@@ -1,7 +1,7 @@
 {
   "name": "blog-publish",
   "main": "./lib/blog-publish",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "A short description of your package",
   "keywords": [],
   "author": "Matthew Zygowicz",
