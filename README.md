@@ -43,6 +43,8 @@ API Keys for Ghost blog are hidden under the integrations tab. From the Ghost Ap
 
 Behind the scenes we are using Basic Auth for wordpress via the npm module wpapi. I found when testing this locally myself I needed to enable a specific plugin for the Basic Auth headers to work and passthrough to Wordpress.
 
+https://github.com/WP-API/Basic-Auth
+
 Also - buyer-beware Basic Auth, like the name implies, is basic and not known to be the most secure of resources.
 
 ## Usage
