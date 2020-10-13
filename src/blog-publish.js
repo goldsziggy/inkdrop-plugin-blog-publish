@@ -1,6 +1,6 @@
 'use babel'
 
-import { publish, sync } from './publisher'
+import { publish, sync, syncAllPosts } from './publisher'
 
 let commandListener = null
 
@@ -56,7 +56,20 @@ async function doSync(blogType) {
   }
 }
 
-// async function doSyncFolder()
+async function doSyncFolder(blogType) {
+  try {
+    await syncAllPosts(blogType)
+    const friendlyName = getFriendlyNameForBlogtype(blogType)
+    notify(
+      'Success',
+      `Successfully synched with ${friendlyName} Blog`,
+      `The selected note has been updated with the latest from your ${friendlyName} Blog.`
+    )
+  } catch (err) {
+    console.error(err)
+    notify('Error', 'Something went wrong while synching', err.message)
+  }
+}
 
 export const config = {
   ghostAdminToken: {
@@ -100,9 +113,11 @@ export const config = {
 export function activate() {
   commandListener = inkdrop.commands.add(document.body, {
     'blog-publish:publish-ghost-single': () => doPublish('GHOST'),
+    'blog-publish:sync-ghost-folder': () => doSyncFolder('GHOST'),
     'blog-publish:sync-ghost-single': () => doSync('GHOST'),
     'blog-publish:publish-wp-single': () => doPublish('WP'),
     'blog-publish:sync-wp-single': () => doSync('WP'),
+    'blog-publish:sync-wp-folder': () => doSyncFolder('WP'),
   })
 }
 

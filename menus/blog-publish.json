@@ -26,6 +26,31 @@
           }
         ]
       }
+    ],
+    ".sidebar-menu-item": [
+      {
+        "label": "Blog Publisher",
+        "submenu": [
+          {
+            "label": "Ghost",
+            "submenu": [
+              {
+                "label": "Sync Ghost to Notebook",
+                "command": "blog-publish:sync-ghost-folder"
+              }
+            ]
+          },
+          {
+            "label": "Wordpress",
+            "submenu": [
+              {
+                "label": "Sync Wordpress to Notebook",
+                "command": "blog-publish:sync-wp-folder"
+              }
+            ]
+          }
+        ]
+      }
     ]
   }
 }
