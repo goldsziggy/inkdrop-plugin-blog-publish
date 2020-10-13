@@ -56,6 +56,8 @@ async function doSync(blogType) {
   }
 }
 
+// async function doSyncFolder()
+
 export const config = {
   ghostAdminToken: {
     title: 'Ghost Admin API Token',

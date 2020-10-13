@@ -4,6 +4,7 @@
 import GhostAdminAPI from '@tryghost/admin-api'
 import GhostContentAPI from '@tryghost/content-api'
 import WPAPI from 'wpapi'
+import MetadataParser from 'markdown-yaml-metadata-parser'
 const showdown = require('showdown')
 
 function getWPAPIObj() {
@@ -49,6 +50,26 @@ function getPosts(blogType) {
   throw new Error('Unsupported blog-type in getPosts')
 }
 
+function findPost({ blogType, posts, metadata, title }) {
+  if (metadata && Object.keys(metadata).length > 0) {
+    console.log('Finding by metadata')
+    return findPostWithMetadata({ blogType, metadata, posts })
+  } else if (title) {
+    console.log('Finding by title')
+    return findPostWithTitle({ blogType, posts, title })
+  }
+  throw new Error('Unsupported find post')
+}
+
+function findPostWithMetadata({ blogType, metadata, posts }) {
+  if (blogType === 'WP') {
+    return posts.find((post) => post.id === metadata.blogId)
+  } else if (blogType === 'GHOST') {
+    return posts.find((post) => post.id === metadata.blogId)
+  }
+
+  throw new Error('Unsupported blog-type in findPostWithTitle')
+}
 function findPostWithTitle({ blogType, posts, title }) {
   if (blogType === 'WP') {
     return posts.find((post) => post.title.rendered === title)
@@ -68,6 +89,21 @@ function getPostHTML({ blogType, post }) {
   }
 
   throw new Error('Unsupported blog-type in getPostHTML')
+}
+
+// @TODO: maybe get some getTitle functions?  Maybe make a Post object to do this?
+function getMetadataTag({ post, blogType }) {
+  if (blogType === 'WP' || blogType === 'GHOST') {
+    return `---
+title: ${blogType === 'WP' ? post.title.rendered : post.title}
+keywords: ${post.tags ? post.tags.join(',') : 'none'}
+blogType: ${blogType === 'WP' ? 'Wordpress' : 'Ghost'}
+blogId: ${post.id}
+link: ${blogType === 'WP' ? post.link : post.url}
+---
+  `
+  }
+  throw new Error('Unsupported blog-type in getMetadataTag')
 }
 
 function createNewPost({ blogType, title, html }) {
@@ -131,14 +167,21 @@ export async function publish(blogType) {
     const converter = new showdown.Converter()
 
     for (const [key, value] of Object.entries(files)) {
-      const html = converter.makeHtml(value.content)
-
-      const found = findPostWithTitle({ blogType, posts, title: key })
-
+      const { metadata, content } = MetadataParser(value.content)
+      const found = findPost({ blogType, posts, title: key, metadata })
+      const html = converter.makeHtml(content)
+      console.log({ metadata, content })
+      const { cm } = inkdrop.getActiveEditor()
       if (found) {
         await editPost({ blogType, foundPost: found, html, title: key })
+        // if no metadata edit the post and put it in there!
+        if (metadata && Object.keys(metadata).length === 0) {
+          cm.doc.setValue(getMetadataTag({ post: found, blogType }) + value.content)
+        }
       } else {
-        await createNewPost({ blogType, title: key, html })
+        const post = await createNewPost({ blogType, title: key, html })
+
+        cm.doc.setValue(getMetadataTag({ post, blogType }) + value.content)
       }
     }
   } catch (e) {
@@ -186,11 +229,13 @@ export async function sync(blogType) {
     const converter = new showdown.Converter()
 
     for (const [key, value] of Object.entries(files)) {
-      const found = findPostWithTitle({ blogType, posts, title: key })
+      const { metadata } = MetadataParser(value.content)
+      const found = findPost({ blogType, posts, title: key, metadata })
+
       if (found) {
         const md = converter.makeMarkdown(getPostHTML({ blogType, post: found }))
 
-        cm.doc.setValue(md)
+        cm.doc.setValue(getMetadataTag({ post: found, blogType }) + md)
       }
     }
   } catch (e) {
